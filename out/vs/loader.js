@@ -1169,8 +1169,10 @@ var AMDLoader;
             var moduleId = this._moduleIdProvider.getModuleId(strModuleId);
             if (this._modules2[moduleId]) {
                 if (!this._config.isDuplicateMessageIgnoredFor(strModuleId)) {
-                    console.warn('Duplicate definition of module \'' + strModuleId + '\'');
+                    //console.warn('Duplicate definition of module \'' + strModuleId + '\'');
                 }
+                //console.warn('TODO->overwriting');
+                this._modules2[moduleId].exports = callback();
                 // Super important! Completely ignore duplicate module definition
                 return;
             }

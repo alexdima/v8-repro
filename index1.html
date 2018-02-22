@@ -7,31 +7,16 @@
   <body>
 <script>
 
+global.startTime = Date.now();
+
 const vm = require('vm');
 const fs = require('fs');
 const path = require('path');
 
-const loaderFilename = path.join(__dirname, 'tmp/loader.js');
 const bundleFilename = path.join(__dirname, 'tmp/bundle.js');
 const bundleCachedData = path.join(__dirname, 'tmp/bundle-cached-data');
 
-var amdDefine = null;
-var amdRequire = null;
-var nodeRequire = require;
-
-// Load the loader via `vm`
-(function() {
-	const loaderSource = fs.readFileSync(loaderFilename);
-	vm.runInThisContext(loaderSource, { filename: loaderFilename });
-	amdDefine = global.define;
-	global.define = undefined;
-	amdRequire = global.require;
-	// global.require = undefined;
-
-	amdDefine('iconv-lite', {});
-	amdDefine('spdlog', {});
-	amdDefine('native-keymap', {});
-})();
+const nodeRequire = require;
 
 // Load the code via `vm`, with cached data
 (function() {
@@ -59,12 +44,13 @@ var nodeRequire = require;
 		console.warn('!! cachedData generated, please run again!');
 	}
 
-	global.define = amdDefine;
 	script.runInThisContext(options);
+	var amdDefine = global.define;
+	var amdRequire = global.require;
 	global.define = undefined;
 
 	nodeRequire('./benchmark').benchmark(nodeRequire, amdRequire);
-})();
+}).call(this);
 
 </script>
   </body>

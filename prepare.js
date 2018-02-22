@@ -19,12 +19,13 @@ try { fs.mkdirSync(TMP_FOLDER); } catch (err) { }
 
 	const bundleContents = `
 (function() {
-	${getFakeNodeModuleDefineCalls()}
+	${getLoaderContents()};
+	${getMissingNodeModuleDefineCalls()}
 	${getFakeEnvironmentalVariables()}
 	${getBundleContents()}
-})();`;
+	${getNodeModulesFillInCalls()};
+}).call(this);`;
 
-	fs.writeFileSync(path.join(TMP_FOLDER, 'loader.js'), getLoaderContents());
 	fs.writeFileSync(path.join(TMP_FOLDER, 'bundle.js'), bundleContents);
 
 	// Clear cached data for bundle.js
@@ -34,19 +35,19 @@ try { fs.mkdirSync(TMP_FOLDER); } catch (err) { }
 // 2.
 // Create startup snapshot using mksnapshot (from all sources)
 (function () {
-
 	const startupFileContents = `
 var Monaco_Loader_Init;
 (function() {
 	var doNotInitLoader = true;
 
 	${getLoaderContents()};
-	${getFakeNodeModuleDefineCalls()}
+	${getMissingNodeModuleDefineCalls()}
 	${getFakeEnvironmentalVariables()}
 	${getBundleContents()};
 
 	Monaco_Loader_Init = function() {
 		AMDLoader.init();
+		${getNodeModulesFillInCalls()};
 		return { define, require };
 	};
 })();`;
@@ -80,80 +81,54 @@ function getBundleContents() {
 		let fileContents = getFileContents(module + '.js');
 		fileContents = fileContents.replace(/define\(\[/g, `define("${module}", [`);
 		fileContents = stripCSSDependencies(fileContents);
+		fileContents = makeLazyNodeModules2(fileContents);
 		return fileContents;
 	}).join('\n;\n');
 }
 
-function getFakeNodeModuleDefineCalls() {
+function getMissingNodeModuleDefineCalls() {
 	return `
-	// define proxies for used node modules
-	(function() {
-		var NODE_MODULES = [
-			'assert',
-			'child_process',
-			'crypto',
-			'electron',
-			'fs',
-			'graceful-fs',
-			'iconv-lite',
-			'native-keymap',
-			'net',
-			'os',
-			'path',
-			'semver',
-			'spdlog',
-			'stream',
-			'string_decoder',
-			'url',
-			'util',
-			'zlib',
-		];
-		var bindModule = function(moduleName) {
-			define(moduleName, function() {
-				var loaded = false;
-				var actual = null;
-				var cache = Object.create(null);
-				var cached = Object.create(null);
+	define('iconv-lite', {});
+	define('spdlog', {});
+	define('native-keymap', {});
 
-				var handler = {
-					get: (target, name) => {
-						// console.log('get for ' + moduleName + '.' + name);
-						// throw new Error('not supported in node.js');
-
-						if (!loaded) {
-							loaded = true;
-							if (moduleName === 'fs') {
-								actual = require.__$__nodeRequire('original-fs');
-							} else {
-								actual = require.__$__nodeRequire(moduleName);
-							}
-						}
-
-						if (!cached[name]) {
-							let result = actual[name];
-							// console.log('===> ' + typeof actual[name]);
-							if (typeof result === 'function') {
-								result = result.bind(actual);
-							}
-							cache[name] = result;
-							cached[name] = true;
-						}
-
-						return cache[name];
-					},
-					set: (target, name, value) => {
-						// console.log('set for ' + moduleName + '.' + name);
-						// throw new Error('not supported in node.js');
-						cache[name] = value;
-						cached[name] = true;
-					}
-				};
-				return new Proxy(Object.create(null), handler);
-			});
-		};
-		NODE_MODULES.forEach(bindModule);
-	})();
+	let LAZY_NODE_MODULES_INIT = [];
+	const NODE_MODULES = ${JSON.stringify(getNodeModules())};
+	NODE_MODULES.forEach(function(moduleName) {
+		define(moduleName, [], function() { return null; });
+	});
 `;
+}
+
+function getNodeModulesFillInCalls() {
+	return `
+	NODE_MODULES.forEach(function(moduleName) {
+		define(moduleName, [], function() { return require.__$__nodeRequire(moduleName); });
+	});
+	LAZY_NODE_MODULES_INIT.forEach(function(item) {
+		item();
+	});
+`;
+}
+
+function getNodeModules() {
+	return [
+		'assert',
+		'child_process',
+		'crypto',
+		'electron',
+		'fs',
+		'graceful-fs',
+		'net',
+		'os',
+		'path',
+		'semver',
+		'stream',
+		'string_decoder',
+		'url',
+		'util',
+		'zlib',
+	];
 }
 
 function getFakeEnvironmentalVariables() {
@@ -171,7 +146,6 @@ function getFakeEnvironmentalVariables() {
 }
 
 function stripCSSDependencies(fileContents) {
-
 	let changed = false;
 	do {
 		changed = false;
@@ -181,6 +155,55 @@ function stripCSSDependencies(fileContents) {
 			changed = true;
 		}
 	} while (changed);
+
+	return fileContents;
+}
+
+function makeLazyNodeModules2(fileContents) {
+	const nodeModules = getNodeModules();
+
+	let lines = fileContents.split('\n');
+	for (let i = 0, len = lines.length; i < len; i++) {
+		const line = lines[i];
+		if (/^define\(/.test(line)) {
+			const arrStartIndex = line.indexOf('[');
+			const arrEndIndex = line.indexOf(']', arrStartIndex);
+			const depsStr = line.substring(arrStartIndex + 1, arrEndIndex);
+			const deps = depsStr.split(',').map(function(dep) {
+				return dep.trim().replace(/"/g, '');
+			});
+
+			const funcStartIndex = line.indexOf('(', arrEndIndex);
+			const funcEndIndex = line.indexOf(')', funcStartIndex);
+			const argsStr = line.substring(funcStartIndex + 1, funcEndIndex);
+			const args = argsStr.split(',').map(function(arg) {
+				return arg.trim();
+			});
+
+			let replace = [];
+			for (let j = 0; j < deps.length; j++) {
+				const dep = deps[j];
+				if (nodeModules.indexOf(dep) >= 0) {
+					// console.log(deps[j] + '---->' + args[j]);
+					// replace.push(args[j]);
+					replace.push(`LAZY_NODE_MODULES_INIT.push(function() { ${args[j]} = require('${deps[j]}'); });`);
+				}
+			}
+
+			if (replace.length === 0) {
+				return fileContents;
+			}
+
+			let prefix = lines.slice(0, i + 1).join('\n');
+			let suffix = lines.slice(i + 1).join('\n');
+
+			// for (let j = 0; j < replace.length; j++) {
+			// 	let regex = new RegExp('\\b' + replace[j] + '\\b\\.', 'g');
+			// 	suffix = suffix.replace(regex, replace[j]+'().');
+			// }
+			return prefix + '\n' + replace.join('\n') + '\n' + suffix;
+		}
+	}
 
 	return fileContents;
 }

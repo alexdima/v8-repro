@@ -30,6 +30,7 @@ exports.benchmark = function(nodeRequire, amdRequire) {
 			.startup(configuration)
 			.done(function () {
 				let end = Date.now();
+				console.log(`TOTAL TIME TOOK ${end - global.startTime} ms.`);
 				console.log(`STARTUP TOOK ${end - start} ms.`);
 			}, function (error) {
 				console.error(error);
