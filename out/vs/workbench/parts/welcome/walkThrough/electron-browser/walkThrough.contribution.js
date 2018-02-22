@@ -1,0 +1,25 @@
+define(["require", "exports", "vs/nls", "vs/workbench/parts/welcome/walkThrough/node/walkThroughInput", "vs/workbench/parts/welcome/walkThrough/electron-browser/walkThroughPart", "vs/workbench/parts/welcome/walkThrough/electron-browser/walkThroughActions", "vs/workbench/parts/welcome/walkThrough/node/walkThroughContentProvider", "vs/workbench/parts/welcome/walkThrough/electron-browser/editor/editorWalkThrough", "vs/platform/registry/common/platform", "vs/workbench/common/editor", "vs/platform/instantiation/common/descriptors", "vs/workbench/common/actions", "vs/platform/actions/common/actions", "vs/workbench/common/contributions", "vs/editor/common/editorContextKeys", "vs/platform/contextkey/common/contextkey", "vs/workbench/browser/editor", "vs/platform/lifecycle/common/lifecycle"], function (require, exports, nls_1, walkThroughInput_1, walkThroughPart_1, walkThroughActions_1, walkThroughContentProvider_1, editorWalkThrough_1, platform_1, editor_1, descriptors_1, actions_1, actions_2, contributions_1, editorContextKeys_1, contextkey_1, editor_2, lifecycle_1) {
+    /*---------------------------------------------------------------------------------------------
+     *  Copyright (c) Microsoft Corporation. All rights reserved.
+     *  Licensed under the MIT License. See License.txt in the project root for license information.
+     *--------------------------------------------------------------------------------------------*/
+    'use strict';
+    Object.defineProperty(exports, "__esModule", { value: true });
+    platform_1.Registry.as(editor_2.Extensions.Editors)
+        .registerEditor(new editor_2.EditorDescriptor(walkThroughPart_1.WalkThroughPart, walkThroughPart_1.WalkThroughPart.ID, nls_1.localize('walkThrough.editor.label', "Interactive Playground")), [new descriptors_1.SyncDescriptor(walkThroughInput_1.WalkThroughInput)]);
+    platform_1.Registry.as(actions_1.Extensions.WorkbenchActions)
+        .registerWorkbenchAction(new actions_2.SyncActionDescriptor(editorWalkThrough_1.EditorWalkThroughAction, editorWalkThrough_1.EditorWalkThroughAction.ID, editorWalkThrough_1.EditorWalkThroughAction.LABEL), 'Help: Interactive Playground', nls_1.localize('help', "Help"));
+    platform_1.Registry.as(editor_1.Extensions.EditorInputFactories).registerEditorInputFactory(editorWalkThrough_1.EditorWalkThroughInputFactory.ID, editorWalkThrough_1.EditorWalkThroughInputFactory);
+    platform_1.Registry.as(contributions_1.Extensions.Workbench)
+        .registerWorkbenchContribution(walkThroughContentProvider_1.WalkThroughContentProvider, lifecycle_1.LifecyclePhase.Starting);
+    platform_1.Registry.as(contributions_1.Extensions.Workbench)
+        .registerWorkbenchContribution(walkThroughContentProvider_1.WalkThroughSnippetContentProvider, lifecycle_1.LifecyclePhase.Starting);
+    platform_1.Registry.as(actions_1.Extensions.WorkbenchActions)
+        .registerWorkbenchAction(new actions_2.SyncActionDescriptor(walkThroughActions_1.WalkThroughArrowUpAction, walkThroughActions_1.WalkThroughArrowUpAction.ID, walkThroughActions_1.WalkThroughArrowUpAction.LABEL, { primary: 16 /* UpArrow */ }, contextkey_1.ContextKeyExpr.and(walkThroughPart_1.WALK_THROUGH_FOCUS, editorContextKeys_1.EditorContextKeys.textFocus.toNegated())), 'Interactive Playground: Scroll Up (Line)', nls_1.localize('interactivePlayground', "Interactive Playground"));
+    platform_1.Registry.as(actions_1.Extensions.WorkbenchActions)
+        .registerWorkbenchAction(new actions_2.SyncActionDescriptor(walkThroughActions_1.WalkThroughArrowDownAction, walkThroughActions_1.WalkThroughArrowDownAction.ID, walkThroughActions_1.WalkThroughArrowDownAction.LABEL, { primary: 18 /* DownArrow */ }, contextkey_1.ContextKeyExpr.and(walkThroughPart_1.WALK_THROUGH_FOCUS, editorContextKeys_1.EditorContextKeys.textFocus.toNegated())), 'Interactive Playground: Scroll Down (Line)', nls_1.localize('interactivePlayground', "Interactive Playground"));
+    platform_1.Registry.as(actions_1.Extensions.WorkbenchActions)
+        .registerWorkbenchAction(new actions_2.SyncActionDescriptor(walkThroughActions_1.WalkThroughPageUpAction, walkThroughActions_1.WalkThroughPageUpAction.ID, walkThroughActions_1.WalkThroughPageUpAction.LABEL, { primary: 11 /* PageUp */ }, contextkey_1.ContextKeyExpr.and(walkThroughPart_1.WALK_THROUGH_FOCUS, editorContextKeys_1.EditorContextKeys.textFocus.toNegated())), 'Interactive Playground: Scroll Up (Page)', nls_1.localize('interactivePlayground', "Interactive Playground"));
+    platform_1.Registry.as(actions_1.Extensions.WorkbenchActions)
+        .registerWorkbenchAction(new actions_2.SyncActionDescriptor(walkThroughActions_1.WalkThroughPageDownAction, walkThroughActions_1.WalkThroughPageDownAction.ID, walkThroughActions_1.WalkThroughPageDownAction.LABEL, { primary: 12 /* PageDown */ }, contextkey_1.ContextKeyExpr.and(walkThroughPart_1.WALK_THROUGH_FOCUS, editorContextKeys_1.EditorContextKeys.textFocus.toNegated())), 'Interactive Playground: Scroll Down (Page)', nls_1.localize('interactivePlayground', "Interactive Playground"));
+});
