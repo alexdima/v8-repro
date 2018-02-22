@@ -16,16 +16,16 @@ define(["require", "exports", "path", "vs/platform/log/common/log", "spdlog"], f
     'use strict';
     Object.defineProperty(exports, "__esModule", { value: true });
     function createSpdLogService(processName, logLevel, logsFolder) {
-        try {
-            spdlog_1.setAsyncMode(8192, 2000);
-            var logfilePath = path.join(logsFolder, processName + ".log");
-            var logger = new spdlog_1.RotatingLogger(processName, logfilePath, 1024 * 1024 * 5, 6);
-            logger.setLevel(0);
-            return new SpdLogService(logger, logLevel);
-        }
-        catch (e) {
-            console.error(e);
-        }
+        // try {
+        //     spdlog_1.setAsyncMode(8192, 2000);
+        //     var logfilePath = path.join(logsFolder, processName + ".log");
+        //     var logger = new spdlog_1.RotatingLogger(processName, logfilePath, 1024 * 1024 * 5, 6);
+        //     logger.setLevel(0);
+        //     return new SpdLogService(logger, logLevel);
+        // }
+        // catch (e) {
+        //     console.error(e);
+        // }
         return new log_1.NullLogService();
     }
     exports.createSpdLogService = createSpdLogService;

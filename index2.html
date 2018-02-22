@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>Hello World!</title>
+	</head>
+<body>
+<script>
+
+(function() {
+	const nodeRequire = require;
+
+	// Everything is already loaded, as it is contained in the snapshot
+	const tmp = Monaco_Loader_Init();
+	const amdDefine = tmp.define;
+	const amdRequire = tmp.require;
+
+	nodeRequire('./benchmark').benchmark(nodeRequire, amdRequire);
+})();
+
+</script>
+</body>
+</html>

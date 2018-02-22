@@ -39,19 +39,19 @@ define(["require", "exports", "vs/nls", "vs/base/common/platform", "vs/platform/
             }
         };
         KeyboardMapperFactory.prototype.getKeyboardMapper = function (dispatchConfig) {
-            if (!this._initialized) {
-                this._setKeyboardData(nativeKeymap.getCurrentKeyboardLayout(), nativeKeymap.getKeyMap());
-            }
-            if (dispatchConfig === 1 /* KeyCode */) {
-                // Forcefully set to use keyCode
-                return new macLinuxFallbackKeyboardMapper_1.MacLinuxFallbackKeyboardMapper(platform_1.OS);
-            }
-            return this._keyboardMapper;
+            //if (!this._initialized) {
+            //    this._setKeyboardData(nativeKeymap.getCurrentKeyboardLayout(), nativeKeymap.getKeyMap());
+            //}
+            //if (dispatchConfig === 1 /* KeyCode */) {
+            //    // Forcefully set to use keyCode
+            return new macLinuxFallbackKeyboardMapper_1.MacLinuxFallbackKeyboardMapper(platform_1.OS);
+            // }
+            // return this._keyboardMapper;
         };
         KeyboardMapperFactory.prototype.getCurrentKeyboardLayout = function () {
-            if (!this._initialized) {
-                this._setKeyboardData(nativeKeymap.getCurrentKeyboardLayout(), nativeKeymap.getKeyMap());
-            }
+            // if (!this._initialized) {
+            //    this._setKeyboardData(nativeKeymap.getCurrentKeyboardLayout(), nativeKeymap.getKeyMap());
+            //}
             return this._layoutInfo;
         };
         KeyboardMapperFactory._isUSStandard = function (_kbInfo) {

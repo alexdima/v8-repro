@@ -1,0 +1,8 @@
+{
+  "main": "main.js",
+  "devDependencies": {
+    "electron-download": "^4.1.0",
+    "electron-mksnapshot": "~1.7.0",
+    "extract-zip": "^1.6.6"
+  }
+}

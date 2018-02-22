@@ -155,7 +155,7 @@ define(["require", "exports", "vs/base/common/winjs.base", "vs/base/browser/buil
             var dirty = input && input.isDirty() ? TitlebarPart.TITLE_DIRTY : '';
             var appName = this.environmentService.appNameLong;
             var separator = TitlebarPart.TITLE_SEPARATOR;
-            var titleTemplate = this.configurationService.getValue('window.title');
+            var titleTemplate = this.configurationService.getValue('window.title') || '${activeEditorShort}${separator}${rootName}';
             return labels.template(titleTemplate, {
                 activeEditorShort: activeEditorShort,
                 activeEditorLong: activeEditorLong,

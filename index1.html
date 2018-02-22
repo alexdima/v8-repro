@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+  <head>
+	<meta charset="UTF-8">
+	<title>Hello World!</title>
+  </head>
+  <body>
+<script>
+
+const vm = require('vm');
+const fs = require('fs');
+const path = require('path');
+
+const loaderFilename = path.join(__dirname, 'tmp/loader.js');
+const bundleFilename = path.join(__dirname, 'tmp/bundle.js');
+const bundleCachedData = path.join(__dirname, 'tmp/bundle-cached-data');
+
+var amdDefine = null;
+var amdRequire = null;
+var nodeRequire = require;
+
+// Load the loader via `vm`
+(function() {
+	const loaderSource = fs.readFileSync(loaderFilename);
+	vm.runInThisContext(loaderSource, { filename: loaderFilename });
+	amdDefine = global.define;
+	global.define = undefined;
+	amdRequire = global.require;
+	// global.require = undefined;
+
+	amdDefine('iconv-lite', {});
+	amdDefine('spdlog', {});
+	amdDefine('native-keymap', {});
+})();
+
+// Load the code via `vm`, with cached data
+(function() {
+	let previousCachedData = null;
+	try { previousCachedData = fs.readFileSync(bundleCachedData) } catch(err) {}
+
+	const options = { filename: bundleFilename };
+	if (previousCachedData) {
+		options.cachedData = previousCachedData;
+	} else {
+		options.produceCachedData = true;
+	}
+
+	const script = new vm.Script(fs.readFileSync(bundleFilename), options);
+
+	if (previousCachedData) {
+		if (script.cachedDataRejected) {
+			console.error('!! cachedDataRejected, will delete it now, please run again!');
+			try { fs.unlinkSync(bundleCachedData); } catch(err) {}
+		} else {
+			console.log('cachedData accepted! :)');
+		}
+	} else {
+		fs.writeFileSync(bundleCachedData, script.cachedData);
+		console.warn('!! cachedData generated, please run again!');
+	}
+
+	global.define = amdDefine;
+	script.runInThisContext(options);
+	global.define = undefined;
+
+	nodeRequire('./benchmark').benchmark(nodeRequire, amdRequire);
+})();
+
+</script>
+  </body>
+</html>

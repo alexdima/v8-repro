@@ -215,6 +215,7 @@ define(["require", "exports", "vs/nls", "vs/base/common/errors", "vs/base/common
         ExtensionService.prototype._startExtensionHostProcess = function (initialActivationEvents) {
             var _this = this;
             this._stopExtensionHostProcess();
+            return;
             this._extensionHostProcessWorker = this._instantiationService.createInstance(extensionHost_1.ExtensionHostProcessWorker, this);
             this._extensionHostProcessWorker.onCrashed(function (_a) {
                 var code = _a[0], signal = _a[1];

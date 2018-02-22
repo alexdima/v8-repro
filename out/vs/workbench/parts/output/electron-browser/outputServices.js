@@ -182,10 +182,10 @@ define(["require", "exports", "vs/nls", "vs/base/common/paths", "vs/base/common/
             _this.appendedMessage = '';
             _this.loadingFromFileInProgress = false;
             // Use one rotating file to check for main file reset
-            _this.outputWriter = new spdlog_1.RotatingLogger(_this.id, _this.file.fsPath, 1024 * 1024 * 30, 1);
-            _this.outputWriter.clearFormatters();
+            // _this.outputWriter = new spdlog_1.RotatingLogger(_this.id, _this.file.fsPath, 1024 * 1024 * 30, 1);
+            // _this.outputWriter.clearFormatters();
             _this.rotatingFilePath = outputChannelIdentifier.id + ".1.log";
-            _this._register(watchOutputDirectory(paths.dirname(_this.file.fsPath), logService, function (eventType, file) { return _this.onFileChangedInOutputDirector(eventType, file); }));
+            // _this._register(watchOutputDirectory(paths.dirname(_this.file.fsPath), logService, function (eventType, file) { return _this.onFileChangedInOutputDirector(eventType, file); }));
             _this.resettingDelayer = new async_1.ThrottledDelayer(50);
             return _this;
         }
