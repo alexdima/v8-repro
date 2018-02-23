@@ -26,6 +26,7 @@ This is a repro for https://groups.google.com/forum/#!topic/v8-users/KddMkLLHh2w
   * it will directly invoke the benchmark
 
 ### Measurements
+(Measurements done on a MacBook Pro, 2016, 3.3GHz Intel Core i7)
 The first number is the total time, of which, the second number is invoking `'vs/workbench/electron-browser/main'.startup(configuration)` in ms:
 ```
 > ./run1.sh
