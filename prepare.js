@@ -39,7 +39,12 @@ var Monaco_Loader_Init;
 	// Clear cached data for bundle.js
 	try { fs.unlinkSync(path.join(TMP_FOLDER, 'bundle-cached-data')); } catch (err) { }
 
-	const startupBlobFilepath = path.join(TMP_FOLDER, `electron-snapshot/Electron.app/Contents/Frameworks/Electron Framework.framework/Resources/snapshot_blob.bin`);
+	let startupBlobFilepath;
+	if (process.platform === 'darwin') {
+		startupBlobFilepath = path.join(TMP_FOLDER, `electron-snapshot/Electron.app/Contents/Frameworks/Electron Framework.framework/Resources/snapshot_blob.bin`);
+	} else {
+		startupBlobFilepath = path.join(TMP_FOLDER, `electron-snapshot/snapshot_blob.bin`);
+	}
 	try { fs.unlinkSync(startupBlobFilepath); } catch (err) { /**/ }
 
 	const mksnapshot = path.join(__dirname, `node_modules/.bin/${process.platform === 'win32' ? 'mksnapshot.cmd' : 'mksnapshot'}`);
