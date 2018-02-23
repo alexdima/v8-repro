@@ -3,7 +3,7 @@
 if [[ "$OSTYPE" == "darwin"* ]]; then
 	CODE="./tmp/electron-original/Electron.app/Contents/MacOS/Electron"
 else
-	CODE="tmp/electron-original/Electron"
+	CODE="tmp/electron-original/electron"
 fi
 
 ELECTRON_ENABLE_LOGGING=1 \
