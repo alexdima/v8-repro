@@ -63,3 +63,9 @@ The first number is the total time, of which, the second number is invoking `'vs
     <img alt="Chart" src="./chart2.png">
   </p>
 
+### Ok, but what is this?
+
+If you are curious to see what is actually executing, uncomment the `<link>` tag on line number 6 in `index1.html` or `index2.html` (the CSS is commented out to not affect measurements):
+  <p align="center">
+    <img alt="screenshot of what is running" src="./explanation.png">
+  </p>
