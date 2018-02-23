@@ -8,7 +8,7 @@ This is a repro for https://groups.google.com/forum/#!topic/v8-users/KddMkLLHh2w
   * we have two installations of Electron because we will *mess with* (change) one of it, we will change its `snapshot_blob.bin`.
 * `node prepare.js`
   * this will create `~/tmp/bundle.js` (from the VSCode compilation output in `~/out`)
-  * this script will be loaded through `mksnapshot` and the `snapshot_blob.bin` will be placed in the expected location inside `~/tmp/electron-snapshot`
+  * `~/tmp/bundle.js` will be loaded through `mksnapshot` and the `snapshot_blob.bin` will be placed in the expected location inside `~/tmp/electron-snapshot`
 
 ### Running
 * both executions use `--no-lazy`
@@ -27,7 +27,7 @@ This is a repro for https://groups.google.com/forum/#!topic/v8-users/KddMkLLHh2w
 
 ### Measurements
 (Measurements done on a MacBook Pro, 2016, 3.3GHz Intel Core i7)
-The first number is the total time, of which, the second number is invoking `'vs/workbench/electron-browser/main'.startup(configuration)` in ms:
+The first number is the total time, of which, the second number is invoking `'vs/workbench/electron-browser/main'.startup(configuration)` in ms. Each test is rerun by killing (ctrl+c) the executable from the terminal, i.e. not by reloading the window:
 ```
 > ./run1.sh
 1747, 359 # excluded
