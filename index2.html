@@ -8,11 +8,9 @@
 <script>
 
 global.startTime = Date.now();
+const nodeRequire = require;
 
 (function() {
-	const nodeRequire = require;
-
-	// Everything is already loaded, as it is contained in the snapshot
 	const tmp = Monaco_Loader_Init();
 	const amdDefine = tmp.define;
 	const amdRequire = tmp.require;

@@ -8,6 +8,7 @@
 <script>
 
 global.startTime = Date.now();
+const nodeRequire = require;
 
 const vm = require('vm');
 const fs = require('fs');
@@ -16,9 +17,7 @@ const path = require('path');
 const bundleFilename = path.join(__dirname, 'tmp/bundle.js');
 const bundleCachedData = path.join(__dirname, 'tmp/bundle-cached-data');
 
-const nodeRequire = require;
-
-// Load the code via `vm`, with cached data
+// Load the code via `vm`, with cached data if available, if cached data is missing, generate it
 (function() {
 	let previousCachedData = null;
 	try { previousCachedData = fs.readFileSync(bundleCachedData) } catch(err) {}
@@ -45,12 +44,16 @@ const nodeRequire = require;
 	}
 
 	script.runInThisContext(options);
-	var amdDefine = global.define;
-	var amdRequire = global.require;
-	global.define = undefined;
+}).call(this);
+
+
+(function() {
+	const tmp = Monaco_Loader_Init();
+	const amdDefine = tmp.define;
+	const amdRequire = tmp.require;
 
 	nodeRequire('./benchmark').benchmark(nodeRequire, amdRequire);
-}).call(this);
+})();
 
 </script>
   </body>

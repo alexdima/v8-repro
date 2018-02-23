@@ -13,56 +13,37 @@ const vm = require('vm');
 const TMP_FOLDER = path.join(__dirname, 'tmp');
 try { fs.mkdirSync(TMP_FOLDER); } catch (err) { }
 
-// 1.
-// Create regular bundle file (all sources except loader concatenated)
 (function () {
 
 	const bundleContents = `
-(function() {
-	${getLoaderContents()};
-	${getMissingNodeModuleDefineCalls()}
-	${getFakeEnvironmentalVariables()}
-	${getBundleContents()}
-	${getNodeModulesFillInCalls()};
-}).call(this);`;
-
-	fs.writeFileSync(path.join(TMP_FOLDER, 'bundle.js'), bundleContents);
-
-	// Clear cached data for bundle.js
-	try { fs.unlinkSync(path.join(TMP_FOLDER, 'bundle-cached-data')); } catch (err) { }
-})();
-
-// 2.
-// Create startup snapshot using mksnapshot (from all sources)
-(function () {
-	const startupFileContents = `
 var Monaco_Loader_Init;
 (function() {
 	var doNotInitLoader = true;
 
 	${getLoaderContents()};
-	${getMissingNodeModuleDefineCalls()}
+	${getNodeModulesFakeCalls()}
 	${getFakeEnvironmentalVariables()}
 	${getBundleContents()};
 
 	Monaco_Loader_Init = function() {
 		AMDLoader.init();
-		${getNodeModulesFillInCalls()};
+		${getNodeModulesResolveCalls()};
 		return { define, require };
 	};
 })();`;
 
-	const startupFilename = path.join(TMP_FOLDER, 'start.js');
-	fs.writeFileSync(startupFilename, startupFileContents);
+	const bundleFilename = path.join(TMP_FOLDER, 'bundle.js');
+
+	fs.writeFileSync(bundleFilename, bundleContents);
+
+	// Clear cached data for bundle.js
+	try { fs.unlinkSync(path.join(TMP_FOLDER, 'bundle-cached-data')); } catch (err) { }
 
 	const startupBlobFilepath = path.join(TMP_FOLDER, `electron-snapshot/Electron.app/Contents/Frameworks/Electron Framework.framework/Resources/snapshot_blob.bin`);
 	try { fs.unlinkSync(startupBlobFilepath); } catch (err) { /**/ }
 
-	// Check that the file works!
-	vm.runInNewContext(startupFileContents, undefined, { filename: startupFilename, displayErrors: true });
-
 	const mksnapshot = path.join(__dirname, `node_modules/.bin/${process.platform === 'win32' ? 'mksnapshot.cmd' : 'mksnapshot'}`);
-	cp.execFileSync(mksnapshot, [`--no-lazy`, startupFilename, `--startup_blob`, startupBlobFilepath]);
+	cp.execFileSync(mksnapshot, [`--no-lazy`, bundleFilename, `--startup_blob`, startupBlobFilepath]);
 })();
 
 function getLoaderContents() {
@@ -71,8 +52,7 @@ function getLoaderContents() {
 		'vs/css.js',
 		'vs/nls.js',
 	].map((file) => {
-		const fileContents = getFileContents(file);
-		return fileContents;
+		return getFileContents(file);
 	}).join('\n;\n');
 }
 
@@ -81,12 +61,12 @@ function getBundleContents() {
 		let fileContents = getFileContents(module + '.js');
 		fileContents = fileContents.replace(/define\(\[/g, `define("${module}", [`);
 		fileContents = stripCSSDependencies(fileContents);
-		fileContents = makeLazyNodeModules2(fileContents);
+		fileContents = makeLazyNodeModules(fileContents);
 		return fileContents;
 	}).join('\n;\n');
 }
 
-function getMissingNodeModuleDefineCalls() {
+function getNodeModulesFakeCalls() {
 	return `
 	define('iconv-lite', {});
 	define('spdlog', {});
@@ -100,7 +80,7 @@ function getMissingNodeModuleDefineCalls() {
 `;
 }
 
-function getNodeModulesFillInCalls() {
+function getNodeModulesResolveCalls() {
 	return `
 	NODE_MODULES.forEach(function(moduleName) {
 		define(moduleName, [], function() { return require.__$__nodeRequire(moduleName); });
@@ -159,7 +139,7 @@ function stripCSSDependencies(fileContents) {
 	return fileContents;
 }
 
-function makeLazyNodeModules2(fileContents) {
+function makeLazyNodeModules(fileContents) {
 	const nodeModules = getNodeModules();
 
 	let lines = fileContents.split('\n');
@@ -184,8 +164,6 @@ function makeLazyNodeModules2(fileContents) {
 			for (let j = 0; j < deps.length; j++) {
 				const dep = deps[j];
 				if (nodeModules.indexOf(dep) >= 0) {
-					// console.log(deps[j] + '---->' + args[j]);
-					// replace.push(args[j]);
 					replace.push(`LAZY_NODE_MODULES_INIT.push(function() { ${args[j]} = require('${deps[j]}'); });`);
 				}
 			}
@@ -197,10 +175,6 @@ function makeLazyNodeModules2(fileContents) {
 			let prefix = lines.slice(0, i + 1).join('\n');
 			let suffix = lines.slice(i + 1).join('\n');
 
-			// for (let j = 0; j < replace.length; j++) {
-			// 	let regex = new RegExp('\\b' + replace[j] + '\\b\\.', 'g');
-			// 	suffix = suffix.replace(regex, replace[j]+'().');
-			// }
 			return prefix + '\n' + replace.join('\n') + '\n' + suffix;
 		}
 	}
